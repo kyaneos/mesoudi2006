@@ -3,7 +3,7 @@ title: "Replication of Study X by Sample & Sample (20xx, Psychological Science)"
 author: "Replication Author[s] (contact information)"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 format:
-  html:
+  pdf:
     toc: true
     toc_depth: 3
 ---
