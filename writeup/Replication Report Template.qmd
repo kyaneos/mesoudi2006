@@ -1,6 +1,10 @@
 ---
-title: "Replication of Study X by Sample & Sample (20xx, Psychological Science)"
-author: "Replication Author[s] (contact information)"
+title: "Replication of the event segmentation findings by Panela et al. (2025, Communications Psychology)"
+author:
+  - name: Justin Bonagura Moran
+    orcid: 0009-0009-2354-037X
+    email: jmoran@ucsd.edu
+    affiliations: UC San Diego
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 format:
   pdf:
@@ -12,7 +16,19 @@ format:
 
 ## Introduction
 
-[No abstract is needed.]  Each replication project will have a straightforward, no frills report of the study and results.  These reports will be publicly available as supplementary material for the aggregate report(s) of the project as a whole.  Also, to maximize project integrity, the intro and methods will be written and critiqued in advance of data collection.  Introductions can be just 1-2 paragraphs clarifying the main idea of the original study, the target finding for replication, and any other essential information. You will likely contact the authors of the original study, so this should be professional and forward facing. It will NOT have a literature review -- that is in the original publication. You can write both the introduction and the methods in past tense.  
+Panela et al. (2025) asked whether large language models (LLMs) can sufficiently complete the task of event segmentation in narratives. Twenty participants read three written narratives from Trevor Noah’s memoir Born a Crime, were asked to mark wherever they judged an event boundary to fall, and then recalled each narrative aloud. Then they had two LLMs (GPT-4 and LLaMA 3.0) perform the same event segmentation task, run twenty times per narrative at three temperatures (0, 0.5, 1.0), so that the LLM sample size was the same as the human participant sample size. The target finding for this replication is the segmentation result. Researchers found that human event segmentation is more consistent with LLMs’ segmentation than among humans themselves. The researchers split the participants into two groups of ten, and compared how many boundaries the two human groups shared against how many a human group shared with a group of LLM runs. The human-model overlap was larger, and it held at temperatures 0 and 0.5.
+
+My current research asks how descriptions of people change as they pass between people, analyzing the compression and content convergence of social information across generations of transmission. My current version of this paradigm builds the seed stimuli for Generation 0 by sampling pieces of what real people said and creating an aggregated synthetic recall, so it needs a consistent and reliable way to slice a recall into chunks. Panela et al. do this by validating automated LLM event segmentation against humans performing the same task. However, Panela et al. run LLM event segmentation on a clean literary narrative, whereas my data is a set of messy spoken recalls of social information. Whether or not the method of event segmentation survives to character recall segmentation is not yet known, and I seek to explore this further in the future by building on this replication. 
+
+I plan to replicate the event segmentation portion of this study by running 42 online participants from UCSD’s undergraduate participant pool (SONA). Participants will read a practice narrative and the three narratives presented in the original study, counterbalanced in order. The narratives will be presented via browser as one continuous block with no paragraph breaks and on a continuous scroll rather than fixed pages so that no page edge falls at the same word for every participant. Participants will digitally mark large event units for each of the three narratives. For LLMs, I will run Claude Opus 4.6 and gemma4 at temperatures 0, 0.5, and 1, with twenty runs per model per temperature per narrative to match the original study’s sample size. Claude Opus 4.6 is chosen instead of a newer model because models newer than Opus 4.6 remove the temperature parameter, which is needed to run the three temperature conditions.
+
+There will be four primary challenges. First, the practice narrative that calibrated participants on what a “large event” is, is not present in the public repository. I will request it from the authors. If I do not receive it in time, I will have to construct a calibration block myself. The original ran in person on printed paper, so moving the task to an online browser task slightly shifts reading modality and segmentation task modality. Excluding the recall task changes what participants are reading for, since the original’s practice block told them to expect a recall task, and reading without that goal might produce different boundaries. Finally, the original models are not up to date, so this replication substitutes GPT-4 with Claude Opus 4.6 and LLaMA 3.0 with gemma4. Failure to reproduce results could be due to a change in models rather than a methodological failure.
+
+::: {.callout-note}
+## Links
+Repository: [https://github.com/kyaneos/panela2025](https://github.com/kyaneos/panela2025)  
+Original paper: [2025_panela_llm_segmentation.pdf](https://github.com/kyaneos/panela2025/blob/main/original_paper/2025_panela_llm_segmentation.pdf) (Retrieved on Sep 30, 2026 from [doi.org/10.1038/s44271-025-00359-7](https://doi.org/10.1038/s44271-025-00359-7))
+:::
 
 
 ## Methods
