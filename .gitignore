@@ -60,3 +60,5 @@ rsconnect/
 **/*.quarto_ipynb
 /site_libs/
 /_freeze
+# figure folders Quarto can leave behind after a render
+*_files/
