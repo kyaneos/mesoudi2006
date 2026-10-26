@@ -1,6 +1,6 @@
 # Replication of Mesoudi, Whiten & Dunbar (2006), Experiment 2
 
-This repository holds my preregistered replication of Experiment 2 from Mesoudi, Whiten and Dunbar (2006), "A bias for social information in human cultural transmission," *British Journal of Psychology*, 97, 405–423 (https://doi.org/10.1348/000712605X85871). Participants pass four short paragraphs along transmission chains of four people, and the question is whether social information survives retelling better than non-social information.
+This repository holds my preregistered replication of Experiment 2 from Mesoudi, Whiten and Dunbar (2006), "A bias for social information in human cultural transmission," *British Journal of Psychology*, 97, 405–423 (https://doi.org/10.1348/000712605X85871). Participants pass four short paragraphs along transmission chains of four people, and asks whether social information survives retelling better than non-social information.
 
 ## Files
 
@@ -11,7 +11,7 @@ This repository holds my preregistered replication of Experiment 2 from Mesoudi,
 
 ## Rendering the report
 
-The report needs R with the tidyverse, and Quarto. From `writeup/`, run:
+The report needs R with tidyverse, and Quarto. From `writeup/`, run:
 
     quarto render "Replication Report Template.qmd"
 
