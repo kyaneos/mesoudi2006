@@ -1,6 +1,6 @@
 # Power simulation for the Mesoudi, Whiten & Dunbar (2006) Experiment 2 replication.
-# Run once from the writeup folder with Rscript power/power_sim.R (about 15 minutes).
-# Results are saved to power/results.rds and power/*.png, which the report loads.
+# Run once from this folder with Rscript power_sim.R (about 15 minutes).
+# Results are saved to results.rds and *.png beside this script, which the report loads.
 # The report shows this code piece by piece, using the "## ---- label ----" markers.
 
 ## ---- setup ----
@@ -92,7 +92,7 @@ consistency_calibration_plot <- ggplot(calibration, aes(x = consistency, y = spr
   geom_vline(xintercept = consistency, color = "grey60") +
   labs(x = "consistency (higher = readers more alike)",
        y = "spread of simulated scores")
-ggsave("power/consistency_calibration.png", consistency_calibration_plot, width = 6, height = 4)
+ggsave("consistency_calibration.png", consistency_calibration_plot, width = 6, height = 4)
 
 ## ---- generator ----
 # shrink the gap between materials; 1 is Mesoudi's effect
@@ -174,7 +174,7 @@ effect_dial <- tibble(effect = c(1, 0.75, 0.5, 0)) |>
     d <- map(1:500, \(i) make_study(n_chains = 10, effect = e)) |> bind_rows()
     mean(d$score[d$material %in% social]) - mean(d$score[!d$material %in% social])
   }))
-ggsave("power/simulated_vs_real_means.png", simulated_vs_real_plot, width = 6, height = 4)
+ggsave("simulated_vs_real_means.png", simulated_vs_real_plot, width = 6, height = 4)
 
 ## ---- scorer-error ----
 # one large simulated dataset to score
@@ -288,7 +288,7 @@ power_plot <- ggplot(power, aes(x = n_chains, y = power, color = factor(effect))
                      labels = c("0.5" = "50%", "0.75" = "75%", "1" = "100%")) +
   labs(x = "number of chains", y = "power",
        color = "true effect\n(share of\nMesoudi's)")
-ggsave("power/power_curve.png", power_plot, width = 9, height = 5)
+ggsave("power_curve.png", power_plot, width = 9, height = 5)
 
 ## ---- chains-needed ----
 # the fewest chains that reach each power target
@@ -315,4 +315,4 @@ saveRDS(list(consistency = consistency,
              effect_dial = effect_dial,
              power = power,
              chains_table = chains_table),
-        "power/results.rds")
+        "results.rds")

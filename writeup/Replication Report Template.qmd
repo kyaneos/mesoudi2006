@@ -67,11 +67,11 @@ The simulation generates data the way a chain produces it. The first participant
 
 The starting and keep rates come from the raw data for Experiment 2, which Mesoudi has since published ([github.com/amesoudi/mesoudi_whiten_dunbar_2006](https://github.com/amesoudi/mesoudi_whiten_dunbar_2006)). His `correct_recall` column is the same measure as my `score`, so I rename it.
 
-All of the code in this section lives in one script, `power/power_sim.R`. The quick steps run live in this report. The slower ones, which are the two calibrations, the generator check, and the power loop, ran once in the script, and this report shows their code and loads what they saved.
+All of the code in this section lives in one script, `new_code/power/power_sim.R`. The quick steps run live in this report. The slower ones, which are the two calibrations, the generator check, and the power loop, ran once in the script, and this report shows their code and loads what they saved.
 
 ```{r read-script}
 #| include: false
-knitr::read_chunk("power/power_sim.R")
+knitr::read_chunk("../new_code/power/power_sim.R")
 
 ```
 
@@ -100,10 +100,10 @@ Each reader's keep rate for a paragraph is drawn from a range centered on the ma
 ```
 
 ```{r consistency-calibration-results}
-# saved by power/power_sim.R
-results <- readRDS("power/results.rds")
+# saved by new_code/power/power_sim.R
+results <- readRDS("../new_code/power/results.rds")
 consistency <- results$consistency
-knitr::include_graphics("power/consistency_calibration.png")
+knitr::include_graphics("../new_code/power/consistency_calibration.png")
 ```
 
 In the plot, the blue line is how much the simulated scores vary at each consistency value, the dashed line is how much the real scores vary, the dotted line is how much they would vary from chance alone, and the gray vertical line marks the chosen value. A consistency of `r consistency` is quite spread out. This means readers differ a lot in how much of a paragraph they hold onto.
@@ -124,7 +124,7 @@ To check that the generator is believable, I averaged 500 simulated 10-chain stu
 ```
 
 ```{r simulated-vs-real-results}
-knitr::include_graphics("power/simulated_vs_real_means.png")
+knitr::include_graphics("../new_code/power/simulated_vs_real_means.png")
 knitr::kable(results$effect_dial, digits = 2,
              col.names = c("effect setting", "social minus non-social"))
 ```
@@ -177,7 +177,7 @@ Power is the chance that a study detects an effect that is really there. I simul
 ```
 
 ```{r power-curve-results}
-knitr::include_graphics("power/power_curve.png")
+knitr::include_graphics("../new_code/power/power_curve.png")
 ```
 
 Each panel is one test, and the first panel is the planned test. The top row assumes perfect scoring and the bottom row the scorer at r = 0.90. Each line is one true effect size, with darker lines for bigger effects, and the dashed lines mark 80%, 90%, and 95% power.
@@ -211,7 +211,7 @@ The materials are the four paragraphs reproduced in Appendix B of Mesoudi et al.
 
 Because the design of Experiment 2 was "largely identical to that of Experiment 1," I will follow the procedure described for Experiment 1: "A booklet was produced that contained on the first page the instruction, 'please read the following text through once. When you have finished turn the page', followed by the material. The second page contained the instruction, 'now, without turning back, please write out as best you can the text you just read. Be as accurate as possible, but don't worry if you can't remember it all. When you have finished turn the page', followed by a blank space for recall. A final sheet solicited the age and gender of the participant, and thanked them for participating, whereupon the experimenter debriefed them as to the nature of the study." As in the original, "no distractor task was performed, and no time limit was set. At no point in the procedure did either the printed instructions or the experimenter state that the experiment was a memory test, that the material had come from another participant, or that their recall would be passed on to another participant."
 
-In my version, the booklet will be a web application I built, which shows each page as its own screen, keeps the original instructions word for word, collects each recall, and passes it to the next participant in the chain. Before the task, participants will answer a screening question on English fluency and an instructions check that repeats until they pass it. The text screen will then hold them for a minimum reading time, set at 400 words per minute for the length of their text. This is faster than a typical reading pace, so the minimum stops skimming without holding up a normal reader. The text cannot be selected or copied. Because participants cannot physically turn the page back, the text will disappear before the recall screen appears. On the recall screen, pasting will be blocked, and the application will log how each recall was typed and whether the participant left the page. Both screens will also carry instructions that participants cannot see, which direct an AI to include an unusual calculation in its response, so that AI-assisted recalls can be flagged. After recalling, participants will answer an honesty item about outside help and an instructed-response item alongside the age and gender questions. They will then read the debrief and return to SONA for credit. In the original, the experimenter typed each recall into the next participant's booklet. My application will pass each recall on only once it clears the exclusion checks in the Analysis Plan, automatically correcting its spelling and spacing and nothing else. Participants will receive credit whether or not their recall is excluded.
+In my version, the booklet will be a web application I built, which shows each page as its own screen, keeps the original instructions word for word, collects each recall, and passes it to the next participant in the chain. Before the task, participants will answer a screening question on English fluency and an instructions check that repeats until they pass it. The text screen will then hold them for a minimum reading time, set at 400 words per minute for the length of their text. This is faster than a typical reading pace, so the minimum stops skimming without holding up a normal reader. The text cannot be selected or copied. Because participants cannot physically turn the page back, the text will disappear before the recall screen appears. On the recall screen, pasting will be blocked, and the application will log how each recall was typed and whether the participant left the page. Both screens will also carry instructions that participants cannot see, which direct an AI to use an uncommon word in its response, so that AI-assisted recalls can be flagged. After recalling, participants will answer an honesty item about outside help and an instructed-response item alongside the age and gender questions. They will then read the debrief and return to SONA for credit. In the original, the experimenter typed each recall into the next participant's booklet. My application will pass each recall on only once it clears the exclusion checks in the Analysis Plan, automatically correcting its spelling and spacing and nothing else. Participants will receive credit whether or not their recall is excluded.
 
 ### Analysis Plan
 
@@ -223,7 +223,7 @@ Additionally, I will report three secondary analyses: 1) the original 4 (materia
 
 Recalls will be scored by two LLMs at temperature 0, one proprietary model pinned to a dated version and one local model. Each will check whether each of a paragraph's 14 propositions is present. Because a scoring prompt can be adjusted until it gives a desired answer, the prompt will be developed on pilot chains only, then frozen along with both model versions before any main data are scored. Whichever model agrees better with my hand coding on the pilot chains will be the primary scorer, and the other will serve as a sensitivity check. I will hand code about a third of the chains using Mesoudi's propositional breakdown. Because I know the hypothesis, I will code these recalls in shuffled order with the chain and generation hidden. The material cannot be hidden, since the text itself gives it away. Automated scoring will pass only if three conditions hold. First, each model's paragraph totals must agree with mine at an ICC lower 95% bound of at least 0.75 and a Pearson r of at least 0.90, against the original's human agreement of r = 0.97. Second, the gap between automated and human scores must not differ across the four materials. Third, the social versus non-social effect must have the same direction and a similar size under human and automated scores. I will also report agreement between the two models, as well as Cohen's kappa for single propositions. If any condition fails, or if the two models disagree on the confirmatory result, I will hand code every recall. All human and model scores will be released with the analysis code.
 
-Exclusions will target only recalls that do not reflect the task. A poor recall is still a result, and excluding it would inflate how much appears to survive. Clear failures will be excluded, and that generation of the chain will be rerun with a new participant. These are recalls that are empty or nearly empty, nonsensical or off-topic, contain the calculation requested by the hidden instructions, come from a participant who reports outside help on the honesty item, or were inserted rather than typed according to the typing log. The rules that need a cutoff will have fixed thresholds, set from the pilot data before collection begins. As a starting point, a recall under 10 words is nearly empty, a recall that shares no content words with the text it was given is off-topic, and a recall with fewer keystrokes than characters was inserted rather than typed. Borderline cases, in which the participant left the page or failed the instructed-response item, will hold the chain until I review them.
+Exclusions will target only recalls that do not reflect the task. A poor recall is still a result, and excluding it would inflate how much appears to survive. Clear failures will be excluded, and that generation of the chain will be rerun with a new participant. These are recalls that are empty or nearly empty, nonsensical or off-topic, contain the word requested by the hidden instructions, come from a participant who reports outside help on the honesty item, or were inserted rather than typed according to the typing log. The rules that need a cutoff will have fixed thresholds, set from the pilot data before collection begins. As a starting point, a recall under 10 words is nearly empty, a recall that shares no content words with the text it was given is off-topic, and a recall with fewer keystrokes than characters was inserted rather than typed. Borderline cases, in which the participant left the page or failed the instructed-response item, will hold the chain until I review them.
 
 ### Differences from Original Study
 

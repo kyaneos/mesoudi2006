@@ -1,0 +1,3 @@
+[submodule "original_code/mesoudi_whiten_dunbar_2006"]
+	path = original_code/mesoudi_whiten_dunbar_2006
+	url = https://github.com/amesoudi/mesoudi_whiten_dunbar_2006.git
