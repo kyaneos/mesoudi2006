@@ -223,7 +223,7 @@ Additionally, I will report three secondary analyses: 1) the original 4 (materia
 
 Recalls will be scored by two LLMs at temperature 0, one proprietary model pinned to a dated version and one local model. Each will check whether each of a paragraph's 14 propositions is present. Because a scoring prompt can be adjusted until it gives a desired answer, the prompt will be developed on pilot chains only, then frozen along with both model versions before any main data are scored. Whichever model agrees better with my hand coding on the pilot chains will be the primary scorer, and the other will serve as a sensitivity check. I will hand code about a third of the chains using Mesoudi's propositional breakdown. Because I know the hypothesis, I will code these recalls in shuffled order with the chain and generation hidden. The material cannot be hidden, since the text itself gives it away. Automated scoring will pass only if three conditions hold. First, each model's paragraph totals must agree with mine at an ICC lower 95% bound of at least 0.75 and a Pearson r of at least 0.90, against the original's human agreement of r = 0.97. Second, the gap between automated and human scores must not differ across the four materials. Third, the social versus non-social effect must have the same direction and a similar size under human and automated scores. I will also report agreement between the two models, as well as Cohen's kappa for single propositions. If any condition fails, or if the two models disagree on the confirmatory result, I will hand code every recall. All human and model scores will be released with the analysis code.
 
-Exclusions will target only recalls that do not reflect the task. A poor recall is still a result, and excluding it would inflate how much appears to survive. Clear failures will be excluded, and that generation of the chain will be rerun with a new participant. These are recalls that are empty or nearly empty, nonsensical or off-topic, contain the word requested by the hidden instructions, come from a participant who reports outside help on the honesty item, or were inserted rather than typed according to the typing log. The rules that need a cutoff will have fixed thresholds, set from the pilot data before collection begins. As a starting point, a recall under 10 words is nearly empty, a recall that shares no content words with the text it was given is off-topic, and a recall with fewer keystrokes than characters was inserted rather than typed. Borderline cases, in which the participant left the page or failed the instructed-response item, will hold the chain until I review them.
+Exclusions will target only recalls that do not reflect the task. A poor recall is still a result, and excluding it would inflate how much appears to survive. Clear failures will be excluded, and that generation of the chain will be rerun with a new participant. These are recalls that are empty or nearly empty, contain the word requested by the hidden instructions, come from a participant who reports outside help on the honesty item, or were inserted rather than typed according to the typing log. The rules that need a cutoff will have fixed thresholds, set from the pilot data before collection begins. As a starting point, a recall under 10 words is nearly empty, and a recall typed with fewer keystrokes than half its characters, or with any single jump of more than 20 characters, was inserted rather than typed. Borderline cases, in which the recall shares less than 15% of its words with the text it was given or the participant failed the instructed-response item, will hold the chain until I review them. For each, I will only judge whether the recall is an attempt to recall the text. Leaving the page will be logged, and a participant who is away for more than 10 minutes will be timed out, and that generation will be rerun.
 
 ### Differences from Original Study
 
@@ -251,17 +251,38 @@ You can comment this section out prior to final report with data collection.
 
 ### Data preparation
 
-Each recall will be stored exactly as typed. The version passed to the next participant, with only spelling and spacing corrected, will be stored separately, and all scoring will use the original. Recalls that failed a clear exclusion check at submission will already have been removed and their generation rerun, so the analyzed data will contain only accepted recalls. Additionally, I will report how many recalls were excluded under each rule, and borderline recalls that I reviewed and accepted will stay in. Chains that have not completed all four generations by the end of collection will be dropped. Each remaining recall will then be scored against the 56 propositions of the four original paragraphs, 14 per paragraph, with each proposition marked present or absent. This gives four scores per participant, one for each paragraph. Before scoring, I will randomly choose about a third of the chains to hand code for the validation checks in the Analysis Plan. The final data will have one row per participant per paragraph, which records the chain, the generation, the material, the paragraph's position in the chain's original reading order, and the number of its propositions recalled correctly. For the confirmatory test, each chain then becomes a single number: its average score on the gossip and social paragraphs minus its average score on the individual and physical paragraphs, across all four generations.
+Each recall will be stored exactly as typed. The version passed to the next participant, with only spelling and spacing corrected, will be stored separately, and all scoring will use the original. Recalls that failed an exclusion check, at submission or in the final questions, will already have been removed and their generation rerun, so the analyzed data will contain only accepted recalls. Additionally, I will report how many recalls were excluded under each rule, and borderline recalls that I reviewed and accepted during collection, before they were passed on, will stay in. Participants who disconnected partway through will be counted and reported, and their generations will also have been rerun. Chains that have not completed all four generations by the end of collection will be dropped. Each remaining recall will then be scored against the 56 propositions of the four original paragraphs, 14 per paragraph, with each proposition marked present or absent. This gives four scores per participant, one for each paragraph. Before scoring, I will randomly choose about a third of the chains to hand code for the validation checks in the Analysis Plan. The final data will have one row per participant per paragraph, which records the chain, the generation, the material, the paragraph's position in the chain's original reading order, and the number of its propositions recalled correctly. For the confirmatory test, each chain then becomes a single number: its average score on the gossip and social paragraphs minus its average score on the individual and physical paragraphs, across all four generations.
 	
+Responses are loaded from the study app's export, and because the pilot ran on the test link, only test rows are kept for the pilot and only real rows for the study.
+
+```{r import-data}
+# every row from the study app, saved by `npm run export` in whispers
+responses <- jsonlite::read_json("../new_code/whispers/exports/whispers_responses.json",
+                                 simplifyVector = TRUE)
+
+# TRUE: the pilot (classmates on the test link). FALSE: the real study
+pilot <- TRUE
+responses <- filter(responses, test == pilot)
+nrow(responses)
+```
+
+```{r exclusions}
+# how many rows ended in each status
+count(responses, status)
+
+# every exclusion was decided before the next generation read the recall:
+# near_empty, canary and not_typed at submit, outside_help after the final
+# questions, and review for a held recall I excluded after reading it
+count(filter(responses, status == "excluded"), exclude_reason)
+
+# only accepted recalls go on to scoring
+recalls <- filter(responses, status == "passed")
+
+# held recalls I passed after reading them, by why they were held
+count(tibble(flag = as.character(unlist(recalls$flags))), flag)
+```
+
 ```{r include=F}
-### Data Preparation
-
-#### Load Relevant Libraries and Functions
-
-#### Import data
-
-#### Data exclusion / filtering
-
 #### Prepare data for analysis - create columns etc.
 ```
 

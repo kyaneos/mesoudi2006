@@ -95,6 +95,12 @@ consistency_calibration_plot <- ggplot(calibration, aes(x = consistency, y = spr
 ggsave("consistency_calibration.png", consistency_calibration_plot, width = 6, height = 4)
 
 ## ---- generator ----
+# the scorer misjudges some propositions in either direction
+score_with_error <- function(true_score, error) {
+  rbinom(length(true_score), size = true_score, prob = 1 - error) +
+    rbinom(length(true_score), size = 14 - true_score, prob = error)
+}
+
 # shrink the gap between materials; 1 is Mesoudi's effect
 scale_rates <- function(effect) {
   rates |>
@@ -102,16 +108,14 @@ scale_rates <- function(effect) {
            keep_rate = mean(keep_rate) + effect * (keep_rate - mean(keep_rate)))
 }
 
-# the four reading orders (1 = gossip, 2 = social, 3 = individual, 4 = physical)
-paragraphs <- c("gossip", "social", "individual", "physical")
-williams <- list(c(1, 2, 4, 3),  # gossip, social, physical, individual
-                 c(2, 3, 1, 4),  # social, individual, gossip, physical
-                 c(3, 4, 2, 1),  # individual, physical, social, gossip
-                 c(4, 1, 3, 2))  # physical, gossip, individual, social
-latin_square <- map(1:4, \(o) tibble(order = o,
-                                     material = paragraphs[williams[[o]]],
-                                     position = 1:4)) |>
-  bind_rows()
+# the four reading orders, one row per paragraph in the order it is read
+latin_square <- tibble(
+  order = rep(1:4, each = 4),
+  material = c("gossip", "social", "physical", "individual",
+               "social", "individual", "gossip", "physical",
+               "individual", "physical", "social", "gossip",
+               "physical", "gossip", "individual", "social"),
+  position = rep(1:4, times = 4))
 
 make_study <- function(n_chains, effect = 1, scorer_error = 0) {
   # each chain's four paragraphs, with their rates and the chain's offset
@@ -121,23 +125,23 @@ make_study <- function(n_chains, effect = 1, scorer_error = 0) {
     mutate(offset = rnorm(1, mean = 0, sd = chain_sd)) |>
     ungroup()
 
-  generations <- list()
-  for (g in 1:4) {
-    if (g == 1) {
-      # the first reader recalls from all 14 original propositions
-      prob <- pmin(pmax(study$start_rate + study$offset, 0), 1)
-      true_score <- rbinom(nrow(study), size = 14, prob = prob)
-    } else {
-      # later readers keep a share of what they received
-      reader_keep <- rbeta(nrow(study), study$keep_rate * consistency,
-                           (1 - study$keep_rate) * consistency)
-      true_score <- rbinom(nrow(study), size = previous, prob = reader_keep)
-    }
-    # the scorer misjudges some propositions in either direction
-    score <- rbinom(nrow(study), size = true_score, prob = 1 - scorer_error) +
-      rbinom(nrow(study), size = 14 - true_score, prob = scorer_error)
-    generations[[g]] <- study |> mutate(generation = g, true_score = true_score, score = score)
-    previous <- true_score # the next reader gets what was actually written
+  # generation 1: the first reader recalls from all 14 original propositions
+  prob <- pmin(pmax(study$start_rate + study$offset, 0), 1)
+  true_score <- rbinom(nrow(study), size = 14, prob = prob)
+  score <- score_with_error(true_score, scorer_error)
+  # 1L is a whole number, the same type as the 2 to 4 the loop below uses
+  generations <- list(study |>
+    mutate(generation = 1L, true_score = true_score, score = score))
+
+  # generations 2 to 4: each reader keeps a share of what they received
+  for (g in 2:4) {
+    previous <- true_score # what was actually written, before the scorer's errors
+    reader_keep <- rbeta(nrow(study), study$keep_rate * consistency,
+                         (1 - study$keep_rate) * consistency)
+    true_score <- rbinom(nrow(study), size = previous, prob = reader_keep)
+    score <- score_with_error(true_score, scorer_error)
+    generations[[g]] <- study |>
+      mutate(generation = g, true_score = true_score, score = score)
   }
 
   bind_rows(generations) |>
@@ -166,6 +170,7 @@ simulated_vs_real_plot <- ggplot(mapping = aes(x = generation, y = score, color 
   geom_errorbar(data = real_means, aes(ymin = score - se, ymax = score + se), width = 0.1) +
   geom_point(data = real_means, size = 2) +
   labs(y = "mean correct recall (out of 14)")
+ggsave("simulated_vs_real_means.png", simulated_vs_real_plot, width = 6, height = 4)
 
 # the social minus non-social gap at each effect setting
 social <- c("gossip", "social")
@@ -174,7 +179,6 @@ effect_dial <- tibble(effect = c(1, 0.75, 0.5, 0)) |>
     d <- map(1:500, \(i) make_study(n_chains = 10, effect = e)) |> bind_rows()
     mean(d$score[d$material %in% social]) - mean(d$score[!d$material %in% social])
   }))
-ggsave("simulated_vs_real_means.png", simulated_vs_real_plot, width = 6, height = 4)
 
 ## ---- scorer-error ----
 # one large simulated dataset to score
@@ -182,9 +186,7 @@ big <- make_study(n_chains = 1000)
 
 # how well a scorer with this error rate agrees with the truth
 scorer_r <- function(error) {
-  scored <- rbinom(nrow(big), size = big$true_score, prob = 1 - error) +
-    rbinom(nrow(big), size = 14 - big$true_score, prob = error)
-  cor(big$true_score, scored)
+  cor(big$true_score, score_with_error(big$true_score, error))
 }
 
 # keep the error rate that gives r = 0.90
