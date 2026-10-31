@@ -263,23 +263,43 @@ responses <- jsonlite::read_json("../new_code/whispers/exports/whispers_response
 # TRUE: the pilot (classmates on the test link). FALSE: the real study
 pilot <- TRUE
 responses <- filter(responses, test == pilot)
-nrow(responses)
+knitr::kable(tibble(rows = nrow(responses)))
 ```
 
 ```{r exclusions}
 # how many rows ended in each status
-count(responses, status)
+knitr::kable(count(responses, status))
 
 # every exclusion was decided before the next generation read the recall:
 # near_empty, canary and not_typed at submit, outside_help after the final
 # questions, and review for a held recall I excluded after reading it
-count(filter(responses, status == "excluded"), exclude_reason)
+knitr::kable(count(filter(responses, status == "excluded"), exclude_reason))
 
 # only accepted recalls go on to scoring
 recalls <- filter(responses, status == "passed")
 
 # held recalls I passed after reading them, by why they were held
-count(tibble(flag = as.character(unlist(recalls$flags))), flag)
+knitr::kable(count(tibble(flag = as.character(unlist(recalls$flags))), flag))
+```
+
+```{r reading-times}
+# how long each accepted participant spent reading the text and writing their
+# recall, in seconds: the median, the fastest and the slowest. Nobody is trimmed,
+# since the read screen already makes everyone read for a minimum time
+recalls |>
+  select(reading = read_ms, writing = recall_ms) |>
+  pivot_longer(everything(), names_to = "screen", values_to = "ms") |>
+  group_by(screen) |>
+  summarize(median = median(ms) / 1000, min = min(ms) / 1000, max = max(ms) / 1000) |>
+  knitr::kable(digits = 1)
+```
+
+```{r complete-chains}
+# only chains with all four generations accepted are analyzed. The app allows one
+# accepted recall per chain and generation, so four rows means all four
+complete <- count(recalls, chain) |> filter(n == 4)
+recalls <- filter(recalls, chain %in% complete$chain)
+knitr::kable(tibble(complete_chains = nrow(complete)))
 ```
 
 ```{r include=F}
