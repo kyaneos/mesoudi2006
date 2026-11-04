@@ -63,11 +63,11 @@ Each row of my data will be one participant's recall of one paragraph. It record
 
 #### How the simulated data is made
 
-The simulation generates data the way a chain produces it. The first participant in a chain reads the original paragraphs, so each of a paragraph's 14 propositions has one chance to be recalled, at that material's starting rate. Because some chains start with a stronger reader than others, each chain also gets a random offset to its starting rates. Every later participant can only recall what the person before them passed on. Each correct proposition they receive has one chance to survive, at that reader's own keep rate. Social materials have higher starting and keep rates than non-social materials, and this difference is the effect. Because each generation is built from the one before it, a chain that starts strong stays strong. This is why the chain is the unit of analysis.
+Because the chain is the unit of analysis, the simulation skips individual recalls and simulates the one number per chain that the planned test sees, the chain's social minus non-social difference (defined below). A simulated study draws one difference per chain from a normal distribution with the SD of Mesoudi's 10 real differences and a mean set to a share of his mean difference. Each of the four pairwise differences is simulated the same way.
 
-The starting and keep rates come from the raw data for Experiment 2, which Mesoudi has since published ([github.com/amesoudi/mesoudi_whiten_dunbar_2006](https://github.com/amesoudi/mesoudi_whiten_dunbar_2006)). His `correct_recall` column is the same measure as my `score`, so I rename it.
+The mean and SD come from the raw data for Experiment 2, which Mesoudi has since published ([github.com/amesoudi/mesoudi_whiten_dunbar_2006](https://github.com/amesoudi/mesoudi_whiten_dunbar_2006)). His `correct_recall` column is the same measure as my `score`, so I rename it.
 
-All of the code in this section lives in one script, `new_code/power/power_sim.R`. The quick steps run live in this report. The slower ones, which are the two calibrations, the generator check, and the power loop, ran once in the script, and this report shows their code and loads what they saved.
+All of the code in this section is in `new_code/power/power_sim.R` and runs live in this report.
 
 ```{r read-script}
 #| include: false
@@ -78,25 +78,7 @@ knitr::read_chunk("../new_code/power/power_sim.R")
 #| message: false
 ```
 
-The starting rate is a material's average generation-1 score divided by 14. The keep rate is the share of correct propositions that generation 2–4 participants passed on, out of all the correct propositions they received. To compute it, each row needs the score of the person before them in the same chain (`previous`).
-
-Because chains differ in how strong their first reader is, each chain gets an offset. This is how far the chain's generation-1 participant scored above or below each material's average, averaged over the four paragraphs. The SD of these offsets is how much chains differ.
-
-Participants in generations 2–4 also differ, since some skim and some read carefully. I model these differences per paragraph, which errs toward needing more chains. Because a careful reader tends to be careful on all four paragraphs, that shared carefulness cancels out in the social minus non-social difference, so leaving it out makes the simulated differences noisier than the real ones.
-
-Each reader's keep rate for a paragraph is drawn from a range centered on the material's keep rate. The `consistency` parameter sets how tight that range is, so high consistency means readers keep about the same share, and low consistency means they differ a lot. To choose it, I simulated a reader for each of Mesoudi's 120 real handoffs at a range of consistency values, and kept the value whose simulated scores vary as much as the real ones.
-
-The `make_study()` function builds one simulated study with any number of chains. Its `effect` argument sets the size of the material effect. At 1, the rates are Mesoudi's. At 0.5, every material's starting and keep rates are pulled halfway toward the average of the four materials, and at 0 all four materials are identical. The noise stays the same at every setting, so only the gap between materials changes.
-
-Reading order follows a Williams square, which is a set of four orders in which each material appears once in each position and directly follows every other material once. Order only applies at generation 1, because later generations read the previous recall as a single text. Each chain gets one order, chains rotate through the four, and every row of a chain records its paragraph's generation-1 position. Order has no effect on scores in the simulation. It is there so the simulated data has the same shape as the real data.
-
-The `scorer_error` argument adds a simulated scorer. A participant's true recall (`true_score`) is what the next participant receives. The scorer then marks each of the 14 propositions as present or absent, and gets each one wrong with probability `scorer_error`, in either direction. The analysis only sees the recorded `score`, which matches the true score when `scorer_error` is 0.
-
-To check that the generator is believable, I averaged 500 simulated 10-chain studies at Mesoudi's effect and compared them with his real means. Additionally, I checked that the `effect` setting works, since the average social minus non-social difference should shrink to 75%, 50%, and 0% of the full effect.
-
-In the plot, each line is the average of 500 simulated studies, and each dot is Mesoudi's mean for one material and generation, with error bars of 1 SE across his 10 chains. Because each dot comes from a single 10-chain study, the lines and dots should not coincide. The simulated means track the real ones within about 0.8 propositions, with the largest gaps at generations 2 and 3. The simulated chains decay at a steady rate, and the real chains are bumpier, since gossip holds up at generation 2 and social drops early. This is at least partly the noise of a single 10-chain sample.
-
-My scoring plan only accepts an automated scorer if its paragraph totals correlate with my hand coding at r $\geq$ 0.90. I set `scorer_error` so that simulated scores correlate with true scores at exactly 0.90, the weakest scorer that would still pass. Because any scorer I actually use will be at least that good, the power from this simulation is a floor. The simulated scorer's errors run both ways at random. A scorer biased in one direction, such as one that over-credits social paragraphs, is not modeled, because the validation already checks that the gap between scorer and human is the same across the four materials.
+My scoring plan only accepts an automated scorer if its paragraph totals correlate with my hand coding at r $\geq$ 0.90. The simulation adds random noise to each simulated chain's difference, sized so that measured and true differences correlate at exactly 0.90, the weakest scorer that would still pass. A real scorer's errors on single recalls partly cancel when 16 recalls are averaged into one chain difference, so this noise is harsher than a real r = 0.90 scorer, and the power from this simulation is a floor. A scorer biased in one direction, such as one that over-credits social paragraphs, is not modeled, because the validation already checks that the gap between scorer and human is the same across the four materials.
 
 #### The planned test
 
@@ -121,7 +103,7 @@ The 95% interval runs from `r round(boot_ci[1], 2)` to `r round(boot_ci[2], 2)` 
 
 #### Power
 
-Power is the chance that a study detects an effect that is really there. I simulated 1,000 studies for every combination of number of chains, true effect, and scorer, and ran the tests on each. The number of chains ranges from 4 to 48 in multiples of 4, so the reading orders balance. The true effect is 100%, 75%, or 50% of Mesoudi's, and the scorer is either perfect or the weakest acceptable at r = 0.90. Power is the share of studies that came out significant, at p < 0.05 for the planned test and at p < 0.01 for the four pairwise comparisons, which is Mesoudi's Bonferroni-corrected level. The gossip versus social comparison is left out, because the original found no difference to power for.
+Power is the chance that a study detects an effect that is really there. The first table below gives Mesoudi's mean and SD for each test. For every combination of number of chains and true effect, I simulated 1,000 studies and ran the tests on each. The number of chains ranges from 4 to 48 in multiples of 4, so the reading orders balance, and the true effect is 100%, 75%, or 50% of Mesoudi's. Power is the share of studies that came out significant, at p < 0.05 for the planned test and at p < 0.01 for the four pairwise comparisons, which is Mesoudi's Bonferroni-corrected level. The gossip versus social comparison is left out, because the original found no difference to power for.
 
 ```{r mesoudi-effects}
 ```
@@ -132,6 +114,8 @@ Power is the chance that a study detects an effect that is really there. I simul
 ```{r no-effect}
 ```
 
+As a check, I ran the same simulation with no effect at all. Each test should then come out significant only as often as its cutoff allows, about 5% of the time for the planned test and 1% for the pairs, and it does.
+
 ```{r power-sims}
 ```
 
@@ -140,9 +124,9 @@ Power is the chance that a study detects an effect that is really there. I simul
 #| fig-height: 3.5
 ```
 
-Each panel is one test, and the first panel is the planned test. The top row assumes perfect scoring and the bottom row the scorer at r = 0.90. Each line is one true effect size, with darker lines for bigger effects, and the dashed lines mark 80%, 90%, and 95% power.
+Each panel is one test, and the first panel is the planned test. Each line is one true effect size, with darker lines for bigger effects, and the dashed line marks 80% power.
 
-The table below gives the smallest number of chains that reaches each power target.
+The table below gives the smallest number of chains that reaches 80% power, and the power at 12 chains.
 
 ```{r chains-needed}
 ```
@@ -209,7 +193,7 @@ Responses are loaded from the study app's export, and because the pilot ran on t
 # every row from the study app, saved by `npm run export` in whispers
 responses <- jsonlite::read_json("../new_code/whispers/exports/whispers_responses.json",
                                  simplifyVector = TRUE)
-# before the pilot the export has no rows, so the data chunks below are skipped
+# the export is empty before the pilot, which skips the data chunks below
 has_data <- length(responses) > 0
 
 # TRUE: the pilot (classmates on the test link). FALSE: the real study
@@ -271,7 +255,7 @@ If the average difference is positive and the test is significant, the effect re
 
 #### Confirmatory test on simulated data
 
-Until the data are collected, this section runs the confirmatory test on one simulated study. The study uses the planned condition from the power analysis, which is 12 chains at 75% of Mesoudi's effect, scored by a scorer that agrees with true scores at only r = 0.90. Because the effect is built into the generator, the estimate should land near the built-in difference, which I find by averaging 1,000 simulated studies at the same condition. The seed is fixed, and the draw is reported as is. Once the real data are in, they will replace `study`, and the code below will run unchanged.
+Until the data are collected, this section runs the confirmatory test on one simulated study. The study uses the planned condition from the power analysis, which is 12 chains at 75% of Mesoudi's effect, scored by a scorer that agrees with true scores at only r = 0.90. Because the effect is built into the simulation, the estimate should land near the built-in difference, which is 75% of Mesoudi's mean difference. The seed is fixed, and the draw is reported as is. Once the real data are in, `chain_difference()` will turn them into `study_differences`, and the rest of the code below will run unchanged.
 
 ```{r confirmatory-sim}
 # the built-in difference: 75% of Mesoudi's

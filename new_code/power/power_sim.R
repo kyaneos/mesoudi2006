@@ -86,8 +86,9 @@ knitr::kable(mesoudi_effects, digits = 2,
 # differences correlate at r = 0.90
 scorer_noise <- sqrt(1 / 0.90^2 - 1)
 
-# one fake study with n_chains chains: a p-value for each test. Each test
-# gets its own fake chains, which doesn't change any one test's power
+# one simulated study with n_chains chains: a p-value for each test. Each
+# test gets its own simulated chains, which doesn't change any one test's
+# power
 one_experiment <- function(n_chains, effect) {
   map_dbl(1:nrow(mesoudi_effects), \(i) {
     this_mean <- effect * mesoudi_effects$mean[i]
@@ -99,10 +100,11 @@ one_experiment <- function(n_chains, effect) {
   })
 }
 
-# power: the share of fake studies that come out significant, for each test
+# power: the share of simulated studies that come out significant, for
+# each test
 estimate_power <- function(n_chains, effect, n_sims = 1000) {
-  # one row per test, one column per fake study, so each row is compared
-  # with its own test's cutoff
+  # one row per test, one column per simulated study, so each row is
+  # compared with its own test's cutoff
   p_values <- replicate(n_sims, one_experiment(n_chains, effect))
   tibble(test = mesoudi_effects$test,
          power = rowMeans(p_values < mesoudi_effects$alpha))

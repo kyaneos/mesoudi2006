@@ -10,7 +10,7 @@ This repository holds my preregistered replication of Experiment 2 from Mesoudi,
 - `original_paper/`: the original article
 - `original_code/mesoudi_whiten_dunbar_2006/`: Mesoudi's published data, reanalysis code, propositional coding sheet and coding guide, linked as a git submodule pinned to the version the report uses. To get it, clone with `git clone --recursive`, or run `git submodule update --init` in an existing clone
 - `presentation/`: slides for the final presentation
-- `data/`: empty until data collection. Participant data stay out of the repository
+- `data/`: empty until data collection
 
 ## Rendering the report
 
