@@ -154,3 +154,8 @@ knitr::kable(chains_table, digits = 2,
 power_at_12 <- power |>
   filter(test == "social vs non-social", effect == 0.75, n_chains == 12) |>
   pull(power)
+
+# and at 50% of the effect
+power_at_12_half <- power |>
+  filter(test == "social vs non-social", effect == 0.5, n_chains == 12) |>
+  pull(power)

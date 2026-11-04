@@ -103,7 +103,7 @@ The 95% interval runs from `r round(boot_ci[1], 2)` to `r round(boot_ci[2], 2)` 
 
 #### Power
 
-Power is the chance that a study detects an effect that is really there. The first table below gives Mesoudi's mean and SD for each test. For every combination of number of chains and true effect, I simulated 1,000 studies and ran the tests on each. The number of chains ranges from 4 to 48 in multiples of 4, so the reading orders balance, and the true effect is 100%, 75%, or 50% of Mesoudi's. Power is the share of studies that came out significant, at p < 0.05 for the planned test and at p < 0.01 for the four pairwise comparisons, which is Mesoudi's Bonferroni-corrected level. The gossip versus social comparison is left out, because the original found no difference to power for.
+The first table below gives Mesoudi's mean and SD for each test. For every combination of number of chains and true effect, I simulated 1,000 studies and ran the tests on each. The number of chains ranges from 4 to 48 in multiples of 4, so the reading orders balance, and the true effect is 100%, 75%, or 50% of Mesoudi's. Power is the share of studies that came out significant, at p < 0.05 for the planned test and at p < 0.01 for the four pairwise comparisons, which is Mesoudi's Bonferroni-corrected level. The gossip versus social comparison is left out, because the original found no difference to power for.
 
 ```{r mesoudi-effects}
 ```
@@ -131,7 +131,7 @@ The table below gives the smallest number of chains that reaches 80% power, and 
 ```{r chains-needed}
 ```
 
-For the planned test, 12 chains gives `r round(power_at_12, 2)` power at 75% of Mesoudi's effect, even with the weakest acceptable scorer. This is the sample I will preregister. The four pairwise comparisons need many more chains, up to 32 for 80% power under the same conditions. Because they are secondary, any pair that is not significant at 12 chains will be reported as underpowered.
+The original study ran 10 chains and found that social material beat non-social material by `r round(mean(real_differences), 2)` propositions per chain. Because an effect from 10 chains is likely inflated, and the low end of its bootstrapped interval is about `r round(100 * boot_low_share)`% of the observed effect, I planned for 75% of it, which 8 chains detect with 80% power. I will preregister 12 chains, which gives `r round(power_at_12, 2)` power for the planned test at 75% of the effect and `r round(power_at_12_half, 2)` at half of it, even with the weakest scorer my validation would accept. Chains will keep opening up to a cap of 32, the point at which all four pairwise comparisons reach 80% power at 75% of the effect. A significant result at 12 chains would replicate the social bias. A non-significant one would argue against an effect three quarters the size of Mesoudi's, though it could not rule out an effect much below half his size. Any pair that is not significant at the final sample will be reported as underpowered.
 
 ### Planned Sample
 
