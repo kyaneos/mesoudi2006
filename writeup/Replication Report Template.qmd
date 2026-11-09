@@ -191,8 +191,9 @@ Responses are loaded from the study app's export, and because the pilot ran on t
 
 ```{r import-data}
 # every row from the study app, saved by `npm run export` in whispers
-responses <- jsonlite::read_json("../new_code/whispers/exports/whispers_responses.json",
-                                 simplifyVector = TRUE)
+responses <- jsonlite::read_json(
+  "../new_code/whispers/exports/whispers_responses.json",
+  simplifyVector = TRUE)
 # the export is empty before the pilot, which skips the data chunks below
 has_data <- length(responses) > 0
 
@@ -210,32 +211,39 @@ knitr::kable(count(responses, status))
 # every exclusion was decided before the next generation read the recall:
 # near_empty, canary and not_typed at submit, outside_help after the final
 # questions, and review for a held recall I excluded after reading it
-knitr::kable(count(filter(responses, status == "excluded"), exclude_reason))
+excluded <- count(filter(responses, status == "excluded"), exclude_reason)
+if (nrow(excluded) == 0) excluded <- tibble(exclude_reason = "none", n = 0)
+knitr::kable(excluded)
 
 # only accepted recalls go on to scoring
 recalls <- filter(responses, status == "passed")
 
 # held recalls I passed after reading them, by why they were held
-knitr::kable(count(tibble(flag = as.character(unlist(recalls$flags))), flag))
+held <- count(tibble(flag = as.character(unlist(recalls$flags))), flag)
+if (nrow(held) == 0) held <- tibble(flag = "none", n = 0)
+knitr::kable(held)
 ```
 
 ```{r reading-times}
 #| eval: !expr has_data
-# how long each accepted participant spent reading the text and writing their
-# recall, in seconds: the median, the fastest and the slowest. Nobody is trimmed,
-# since the read screen already makes everyone read for a minimum time
+# seconds each accepted participant spent reading the text and writing
+# their recall: the median, the fastest and the slowest. Nobody is
+# trimmed, since the read screen already sets a minimum reading time
 recalls |>
   select(reading = read_ms, writing = recall_ms) |>
   pivot_longer(everything(), names_to = "screen", values_to = "ms") |>
   group_by(screen) |>
-  summarize(median = median(ms) / 1000, min = min(ms) / 1000, max = max(ms) / 1000) |>
+  summarize(median = median(ms) / 1000,
+            min = min(ms) / 1000,
+            max = max(ms) / 1000) |>
   knitr::kable(digits = 1)
 ```
 
 ```{r complete-chains}
 #| eval: !expr has_data
-# only chains with all four generations accepted are analyzed. The app allows one
-# accepted recall per chain and generation, so four rows means all four
+# only chains with all four generations accepted are analyzed. The app
+# allows one accepted recall per chain and generation, so four rows
+# means all four
 complete <- count(recalls, chain) |> filter(n == 4)
 recalls <- filter(recalls, chain %in% complete$chain)
 knitr::kable(tibble(complete_chains = nrow(complete)))
