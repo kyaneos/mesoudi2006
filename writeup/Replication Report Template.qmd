@@ -78,7 +78,7 @@ knitr::read_chunk("../new_code/power/power_sim.R")
 #| message: false
 ```
 
-My scoring plan only accepts an automated scorer if its paragraph totals correlate with my hand coding at r $\geq$ 0.90. The simulation adds random noise to each simulated chain's difference, sized so that measured and true differences correlate at exactly 0.90, the weakest scorer that would still pass. A real scorer's errors on single recalls partly cancel when 16 recalls are averaged into one chain difference, so this noise is harsher than a real r = 0.90 scorer, and the power from this simulation is a floor. A scorer biased in one direction, such as one that over-credits social paragraphs, is not modeled, because the validation already checks that the gap between scorer and human is the same across the four materials.
+My scoring plan only accepts an automated scorer if its paragraph totals correlate with my hand coding at r $\geq$ 0.90. The simulation adds random noise to each simulated chain's difference, sized so that measured and true differences correlate at exactly 0.90, the weakest scorer that would still pass. This is about the noise a real r = 0.90 scorer would add to a chain's difference, once its errors on the 16 paragraph scores are averaged. A scorer biased in one direction, such as one that over-credits social paragraphs, is not modeled, because the validation already checks that the gap between scorer and human is the same across the four materials.
 
 #### The planned test
 
