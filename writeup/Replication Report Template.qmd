@@ -191,10 +191,15 @@ Responses are loaded from the study app's export, and because the pilot ran on t
 
 ```{r import-data}
 # every row from the study app, saved by `npm run export` in whispers
-responses <- jsonlite::read_json(
-  "../new_code/whispers/exports/whispers_responses.json",
-  simplifyVector = TRUE)
-# the export is empty before the pilot, which skips the data chunks below
+export_path <- "../new_code/whispers/exports/whispers_responses.json"
+# exports/ is gitignored, so a fresh clone has no export file at all
+responses <- if (file.exists(export_path)) {
+  jsonlite::read_json(export_path, simplifyVector = TRUE)
+} else {
+  list()
+}
+# the export is missing or empty before the pilot, which skips the data
+# chunks below
 has_data <- length(responses) > 0
 
 # TRUE: the pilot (classmates on the test link). FALSE: the real study
