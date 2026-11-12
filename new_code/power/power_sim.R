@@ -41,7 +41,8 @@ real_differences <- chain_difference(mesoudi)$difference
 sign_flip_p <- function(differences, n_flips = 5000) {
   n <- length(differences)
   # each row is one round of random signs, a + or - for every chain
-  signs <- matrix(sample(c(-1, 1), n_flips * n, replace = TRUE), nrow = n_flips)
+  signs <- matrix(sample(c(-1, 1), n_flips * n, replace = TRUE),
+                  nrow = n_flips)
   # multiplying gives every round's mean difference at once, which is much
   # faster than a loop that flips one round at a time
   flipped_means <- (signs %*% differences) / n
@@ -53,10 +54,13 @@ sign_flip_p <- function(differences, n_flips = 5000) {
 real_p <- sign_flip_p(real_differences)
 
 ## ---- bootstrap-effect ----
-boot_means <- map_dbl(1:10000, \(i) mean(sample(real_differences, replace = TRUE)))
+boot_means <- map_dbl(1:10000,
+                      \(i) mean(sample(real_differences, replace = TRUE)))
 
-boot_ci <- quantile(boot_means, c(0.025, 0.975)) # the range of plausible effects
-boot_low_share <- boot_ci[1] / mean(real_differences) # the low end as a share of his effect
+# the range of plausible effects
+boot_ci <- quantile(boot_means, c(0.025, 0.975))
+# the low end as a share of his effect
+boot_low_share <- boot_ci[1] / mean(real_differences)
 
 ## ---- mesoudi-effects ----
 # readable test names, in the order the tables and figure show them
@@ -136,19 +140,26 @@ ggplot(power, aes(x = n_chains, y = power, color = factor(effect))) +
        color = "true effect\n(share of\nMesoudi's)")
 
 ## ---- chains-needed ----
-# the fewest chains that reach 80% power, and the power at 12 chains
+# the fewest chains that reach a power target, or "> 48" if none do
+chains_for <- function(n_chains, power, target) {
+  if (!any(power >= target)) return("> 48")
+  as.character(min(n_chains[power >= target]))
+}
+
+# the fewest chains for 80%, 90% and 95% power, and the power at 12 chains
 chains_table <- power |>
   group_by(test, effect) |>
-  summarize(chains_for_80 = if (any(power >= 0.8))
-                              as.character(min(n_chains[power >= 0.8]))
-                            else "> 48",
+  summarize(chains_for_80 = chains_for(n_chains, power, 0.80),
+            chains_for_90 = chains_for(n_chains, power, 0.90),
+            chains_for_95 = chains_for(n_chains, power, 0.95),
             power_at_12 = power[n_chains == 12],
             .groups = "drop") |>
   arrange(test, desc(effect))
 
 knitr::kable(chains_table, digits = 2,
              col.names = c("test", "share of Mesoudi's effect",
-                           "chains for 80% power", "power at 12 chains"))
+                           "chains for 80% power", "chains for 90% power",
+                           "chains for 95% power", "power at 12 chains"))
 
 # planned test at 12 chains and 75% of the effect
 power_at_12 <- power |>
