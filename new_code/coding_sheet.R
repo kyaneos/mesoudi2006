@@ -93,6 +93,15 @@ propositions <- tribble(
 # numbered after the last code
 accepted <- jsonlite::read_json(export_path, simplifyVector = TRUE) |>
   filter(test == pilot, status == "passed")
+
+# the pilot hand codes every recall. The study hand codes a random third of
+# the complete chains, chosen here before anyone has seen a score
+if (!pilot) {
+  complete <- count(accepted, chain) |> filter(n == 4) |> pull(chain)
+  # sample.int, because sample(7, 1) would draw from 1:7 if only chain 7 were complete
+  chosen <- complete[sample.int(length(complete), max(1, round(length(complete) / 3)))]
+  accepted <- filter(accepted, chain %in% chosen)
+}
 key <- if (file.exists(key_path)) read_csv(key_path, show_col_types = FALSE) else tibble(recall = character(), id = character())
 new <- accepted |>
   filter(!id %in% key$id) |>
