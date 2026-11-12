@@ -206,6 +206,14 @@ has_data <- length(responses) > 0
 pilot <- TRUE
 if (has_data) responses <- filter(responses, test == pilot)
 knitr::kable(tibble(rows = if (has_data) nrow(responses) else 0))
+
+# the hand codes: the coding Google Sheet downloaded as an .xlsx
+# (File > Download > Microsoft Excel) into the same gitignored folder, and
+# the key from coding_sheet.R that links each recall code to its chain.
+# Until the coded sheet is there, the hand-codes chunk below is skipped
+coded_path <- paste0("../new_code/whispers/exports/coded_", if (pilot) "pilot" else "study", ".xlsx")
+key_path <- paste0("../new_code/whispers/exports/coding_key_", if (pilot) "pilot" else "study", ".csv")
+has_codes <- file.exists(coded_path)
 ```
 
 ```{r exclusions}
@@ -253,6 +261,33 @@ recalls |>
 complete <- count(recalls, chain) |> filter(n == 4)
 recalls <- filter(recalls, chain %in% complete$chain)
 knitr::kable(tibble(complete_chains = nrow(complete)))
+```
+
+```{r hand-codes}
+#| eval: !expr has_codes
+# the rubric tab turns each column header back into its material. The
+# material is only written on each block's first row, so it's filled down
+rubric <- readxl::read_excel(coded_path, "rubric") |> fill(material)
+key <- read_csv(key_path, show_col_types = FALSE)
+
+# every tab except the rubric is one coder: one row per recall, one column
+# per proposition, 1 if present and blank if not
+coders <- setdiff(readxl::excel_sheets(coded_path), "rubric")
+hand_codes <- map(coders, \(coder) mutate(readxl::read_excel(coded_path, coder), coder = coder)) |>
+  list_rbind()
+
+# each coder's score per recall and paragraph: how many of its 14
+# propositions were marked present, with the recall's chain and generation
+hand_scores <- hand_codes |>
+  pivot_longer(any_of(rubric$point), names_to = "point", values_to = "present") |>
+  left_join(select(rubric, point, material), by = "point") |>
+  summarize(score = sum(present == 1, na.rm = TRUE), .by = c(coder, recall, material)) |>
+  left_join(select(key, recall, chain, generation), by = "recall")
+
+hand_scores |>
+  pivot_wider(names_from = material, values_from = score) |>
+  arrange(coder, recall) |>
+  knitr::kable()
 ```
 
 ```{r include=F}
