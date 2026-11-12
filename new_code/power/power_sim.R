@@ -40,7 +40,7 @@ real_differences <- chain_difference(mesoudi)$difference
 ## ---- sign-flip ----
 sign_flip_p <- function(differences, n_flips = 5000) {
   n <- length(differences)
-  # each row is one round of coin flips, a random + or - for every chain
+  # each row is one round of random signs, a + or - for every chain
   signs <- matrix(sample(c(-1, 1), n_flips * n, replace = TRUE), nrow = n_flips)
   # multiplying gives every round's mean difference at once, which is much
   # faster than a loop that flips one round at a time
