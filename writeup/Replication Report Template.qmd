@@ -41,7 +41,7 @@ Original paper: [2006_mesoudi_social_information_bias.pdf](https://github.com/ky
 
 #### One row of data
 
-Each row of my data is one participant's recall of one paragraph. It records the chain, the participant's generation, which material the paragraph was, the paragraph's position in the chain's original reading order (1 to 4), and the score. The score is the number of the paragraph's 14 original propositions the participant recalled correctly, scored against the original (F0) paragraph at every generation, as in Mesoudi et al. (2006). Each participant contributes four rows, so 12 chains of four generations give 192 rows.
+Each row of my data is one participant's recall of one paragraph. It records the chain, the participant's generation, which material the paragraph was, the paragraph's position in the chain's original reading order (1 to 4), and the score. The score is the number of the paragraph's 14 original propositions the participant recalled correctly, scored against the original (F0) paragraph at every generation, as in Mesoudi et al. (2006). Each participant contributes four rows, so 20 chains of four generations give 320 rows.
 
 | chain | generation | material | position | score |
 |-------|------------|----------|----------|-------|
