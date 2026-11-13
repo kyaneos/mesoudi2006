@@ -116,7 +116,7 @@ estimate_power <- function(n_chains, effect, n_sims = 1000) {
 
 ## ---- no-effect ----
 # with no effect, each test should come out significant at about its cutoff
-estimate_power(n_chains = 12, effect = 0, n_sims = 2000) |>
+estimate_power(n_chains = 20, effect = 0, n_sims = 2000) |>
   mutate(cutoff = mesoudi_effects$alpha) |>
   knitr::kable(digits = 3,
                col.names = c("test", "share significant", "cutoff"))
@@ -146,27 +146,34 @@ chains_for <- function(n_chains, power, target) {
   as.character(min(n_chains[power >= target]))
 }
 
-# the fewest chains for 80%, 90% and 95% power, and the power at 12 chains
+# the fewest chains for 80%, 90% and 95% power, and the power at 20 chains
 chains_table <- power |>
   group_by(test, effect) |>
   summarize(chains_for_80 = chains_for(n_chains, power, 0.80),
             chains_for_90 = chains_for(n_chains, power, 0.90),
             chains_for_95 = chains_for(n_chains, power, 0.95),
-            power_at_12 = power[n_chains == 12],
+            power_at_20 = power[n_chains == 20],
             .groups = "drop") |>
   arrange(test, desc(effect))
 
 knitr::kable(chains_table, digits = 2,
              col.names = c("test", "share of Mesoudi's effect",
                            "chains for 80% power", "chains for 90% power",
-                           "chains for 95% power", "power at 12 chains"))
+                           "chains for 95% power", "power at 20 chains"))
 
-# planned test at 12 chains and 75% of the effect
-power_at_12 <- power |>
-  filter(test == "social vs non-social", effect == 0.75, n_chains == 12) |>
+# planned test at 20 chains and 75% of the effect
+power_at_20 <- power |>
+  filter(test == "social vs non-social", effect == 0.75, n_chains == 20) |>
   pull(power)
 
 # and at 50% of the effect
-power_at_12_half <- power |>
-  filter(test == "social vs non-social", effect == 0.5, n_chains == 12) |>
+power_at_20_half <- power |>
+  filter(test == "social vs non-social", effect == 0.5, n_chains == 20) |>
   pull(power)
+
+# the two social-paragraph pairs at 20 chains and 75% of the effect, averaged
+social_pairs_at_20 <- power |>
+  filter(test %in% c("social vs individual", "social vs physical"),
+         effect == 0.75, n_chains == 20) |>
+  pull(power) |>
+  mean()
